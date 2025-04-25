@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import fs from 'fs';
 
 export async function DiscordRequest(endpoint, options) {
   // append endpoint to root API URL
@@ -30,9 +31,23 @@ export async function InstallGlobalCommands(appId, commands) {
 
   try {
     // This is calling the bulk overwrite endpoint: https://discord.com/developers/docs/interactions/application-commands#bulk-overwrite-global-application-commands
-    await DiscordRequest(endpoint, { method: 'PUT', body: commands });
+    const res = await DiscordRequest(endpoint, { method: 'PUT', body: commands });
+    console.log(`Registering ${commands.length} global command(s): ${commands.map(c => c.name).join(', ')} - response: ${res.status}`);
   } catch (err) {
     console.error(err);
+  }
+}
+
+export async function InstallGuildCommands(appId, guildId, commands) {
+  const endpoint = `/applications/${appId}/guilds/${guildId}/commands`;
+
+  try {
+    const res = await DiscordRequest(endpoint, { method: 'PUT', body: commands });
+    console.log(`✅ Registered ${commands.length} guild command(s): ${commands.map(c => c.name).join(', ')} - Status: ${res.status}`);
+    const data = await res.json();
+    console.log('Response:', data);
+  } catch (err) {
+    console.error('❌ Failed to register guild commands:', err);
   }
 }
 
@@ -44,4 +59,17 @@ export function getRandomEmoji() {
 
 export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function saveChannelId(channelId) {
+  fs.writeFileSync('./channel-config.json', JSON.stringify({ targetChannelID: channelId}));
+}
+
+export function loadChannelId() {
+  if (fs.existsSync('./channel-config.json')) {
+    const data = fs.readFileSync('./channel-config.json', 'utf8');
+    const config = JSON.parse(data);
+    return config.targetChannelID;
+  }
+  return null;
 }

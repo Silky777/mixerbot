@@ -1,26 +1,31 @@
 {
-  "name": "discord-getting-started",
+  "name": "MixerMagus",
   "private": true,
   "version": "1.0.0",
-  "description": "Discord example app",
+  "description": "Discord app for creating mixes of music from guild members",
   "main": "app.js",
   "type": "module",
   "engines": {
     "node": ">=18.x"
   },
   "scripts": {
-    "start": "node app.js",
+    "start": "node index.js",
     "register": "node commands.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon index.js"
   },
-  "author": "Shay DeWael",
+  "author": "Hayden White",
   "license": "MIT",
   "dependencies": {
-    "discord-interactions": "^4.0.0",
+    "better-sqlite3": "^11.9.1",
+    "discord-interactions": "^4.1.1",
+    "discord.js": "^14.18.0",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "googleapis": "^148.0.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.0"
+    "nodemon": "^3.1.10"
   }
 }

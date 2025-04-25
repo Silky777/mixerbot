@@ -1,6 +1,5 @@
 import 'dotenv/config';
-import { getRPSChoices } from './game.js';
-import { capitalize, InstallGlobalCommands } from './utils.js';
+import { capitalize, InstallGlobalCommands, InstallGuildCommands } from './utils.js';
 
 // Get the game choices from game.js
 function createCommandChoices() {
@@ -26,24 +25,74 @@ const TEST_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-// Command containing options
-const CHALLENGE_COMMAND = {
-  name: 'challenge',
-  description: 'Challenge to a match of rock paper scissors',
+// Music channel command
+const SET_CHANNEL_COMMAND = {
+  name: 'setchannel',
+  description: ' Set the music channel',
+  type: 1,
   options: [
     {
-      type: 3,
-      name: 'object',
-      description: 'Pick your object',
+      type: 7, // Channel type
+      name: 'channel',
+      description: 'The channel to set as the music channel',
       required: true,
-      choices: createCommandChoices(),
     },
   ],
+  integration_types: [0, 1],
+  contexts: [0, 2],
+  // only admins can run this command
+  default_member_permissions: 8, // 8 is the permission for administrator
+}
+
+// Recent songs command
+const RECENT_SONGS_COMMAND = {
+  name: 'recentsongs',
+  description: 'Get the last 10 songs added to the music channel',
   type: 1,
   integration_types: [0, 1],
   contexts: [0, 2],
 };
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND];
+// Scan channel command
+const SCAN_CHANNEL_COMMAND = {
+  name: 'scanmusic',
+  description: 'Scan the entire channel for music links not in the DB',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
 
-InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
+// query songs
+const QUERY_SONGS_COMMAND = {
+  name: 'querysongs',
+  description: 'Search songs by user, artist, or title',
+  type: 1,
+  options: [
+    {
+      type: 3,
+      name: 'user',
+      description: 'Discord username or user ID (e.g. skyibiz)',
+      required: false,
+    },
+    {
+      type: 3,
+      name: 'artist',
+      description: 'Artist name (partial match allowed)',
+      required: false,
+    },
+    {
+      type: 3,
+      name: 'title',
+      description: 'Song title (partial match allowed)',
+      required: false,
+    },
+  ],
+  integration_types: [0, 1],
+  contexts: [0, 2],
+};
+
+
+const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, SET_CHANNEL_COMMAND, RECENT_SONGS_COMMAND, SCAN_CHANNEL_COMMAND, QUERY_SONGS_COMMAND];
+
+// InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
+InstallGuildCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);
