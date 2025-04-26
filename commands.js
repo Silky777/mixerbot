@@ -44,6 +44,24 @@ const SET_CHANNEL_COMMAND = {
   default_member_permissions: 8, // 8 is the permission for administrator
 }
 
+const SET_BOT_CONTROLLER_ROLE_COMMAND = {
+  name: 'setadminrole',
+  type: 1,
+  description: 'Set the role that can access admin-privileged commands.',
+  options: [
+    {
+      type: 8, // Role type
+      name: 'role',
+      description: 'The role to set as the Bot Controller role.',
+      required: true,
+    },
+  ],
+  // only admins can run this command
+  default_member_permissions: 8, // 8 is the permission for administrator
+  integration_types: [0, 1],
+  contexts: [0, 2]
+};
+
 // Recent songs command
 const RECENT_SONGS_COMMAND = {
   name: 'recentsongs',

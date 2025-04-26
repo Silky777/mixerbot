@@ -112,7 +112,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
               `**[Link to Song](${song.url})**`,
               song.album && song.album !== 'Unknown Album' ? `**Album**: ${song.album}` : '',
               `**Genre**: ${song.genre || 'Unknown Genre'}`,
-              `**Added by**: <@${song.user_id}> on <t:${Math.floor(new Date(song.added_at).getTime() / 1000)}:F>`,
+              `**Added by**: <@${song.user_id}> on <t:${song.added_at}:F>`,
             ]
               .filter(Boolean) // Remove empty values
               .join('\n')
@@ -146,15 +146,15 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
         const messages = await fetchMusic(targetChannelID);
         const urls = extractYouTubeLinks(messages);
         const existing = db.prepare('SELECT url FROM songs').all().map(s => s.url);
-      
+
         let newCount = 0;
-        for (const { url, user, id } of urls) {
+        for (const { url, user, id, timestamp } of urls) {
           if (!existing.includes(url)) {
-            await insertSong({ url, user: { id: id, username: user } });
+            await insertSong({ url, user: { id: id, username: user }, timestamp });
             newCount++;
           }
         }
-      
+
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
@@ -170,7 +170,6 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
           },
         });
       }
-
     }
 
     // Query songs command
@@ -232,7 +231,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
               `**[Link to Song](${song.url})**`,
               song.album && song.album !== 'Unknown Album' ? `**Album**: ${song.album}` : '',
               `**Genre**: ${song.genre || 'Unknown Genre'}`,
-              `**Added by**: <@${song.user_id}> on <t:${Math.floor(new Date(song.added_at).getTime() / 1000)}:F>`,
+              `**Added by**: <@${song.user_id}> on <t:${song.added_at}:F>`,
             ]
               .filter(Boolean) // Remove empty values
               .join('\n'),
