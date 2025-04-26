@@ -17,7 +17,7 @@ export async function fetchMusic(channelId) {
   }
 
   return data
-    .filter((message) => message.author.discriminator === '0')
+    .filter((message) => !message.author.bot)
     .map((message) => ({
       id: message.id,
       // Extract user details
@@ -51,6 +51,7 @@ export function extractYouTubeLinks(messages) {
 
 // Insert song
 export async function insertSong({ url, user }) {
+    console.log('Inserting song with data:', { url, user });
     const videoId = extractVideoId(url);
     const metadata = videoId ? await getYouTubeMetadata(videoId) : null;
   
