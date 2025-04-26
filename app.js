@@ -8,7 +8,6 @@ import {
   MessageComponentTypes,
   verifyKeyMiddleware,
 } from 'discord-interactions';
-import { getRandomEmoji, DiscordRequest } from './utils.js';
 import { fetchMusic, extractYouTubeLinks, insertSong } from './mixer.js';
 import { saveChannelId, loadChannelId } from './utils.js';
 import db from './db.js';
@@ -51,7 +50,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
           // Fetches a random emoji to send from a helper function
-          content: `hello world ${getRandomEmoji()}`,
+          content: `Hello world, I'm alive!`,
         },
       });
     }
