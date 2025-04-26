@@ -81,7 +81,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
-          content: `Music channel set to <#${channelId}> ${getRandomEmoji()}`,
+          content: `Music channel set to <#${channelId}>`,
         },
       });
     }
@@ -92,7 +92,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
         const recentSongs = db.prepare('SELECT * FROM songs ORDER BY id DESC LIMIT 10').all();
     
         const responseContent = recentSongs.map(song => {
-          const addedBy = `@silent <@${song.user_id}>`;
+          const addedBy = `<@${song.user_id}>`;
           const date = new Date(song.added_at).toLocaleDateString();
           const titleLink = `[**${song.title}**](${song.url})`;
           const albumInfo = song.album && song.album !== 'Unknown Album'
@@ -134,8 +134,8 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
       
         let newCount = 0;
         for (const { url, user } of urls) {
-          if (!existing.includes(url)) {
-            await insertSong({ url, user: { id: user, username: user } });
+          if (!existing.includes(url) && user.id !== 1365539206310662274) {
+            await insertSong({ url, user: { id: user.id, username: user } });
             newCount++;
           }
         }
@@ -188,7 +188,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
     
         const responseContent = matches.length
           ? matches.map(song => {
-              const addedBy = song.user_id ? `@silent <@${song.user_id}>` : `@silent @${song.user_name}`;
+              const addedBy = song.user_id ? `<@${song.user_id}>` : `@${song.user_name}`;
               const date = new Date(song.added_at).toLocaleDateString();
               const link = `[**${song.title}**](<${song.url}>)`;
               return `${link} by ${song.artist} (${song.album})\n→ Added by ${addedBy} on ${date}`;

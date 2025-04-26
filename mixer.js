@@ -3,29 +3,31 @@ import { getYouTubeMetadata, extractVideoId } from './youtube.js';
 import db from './db.js';
 
 export async function fetchMusic(channelId) {
-    const url = `https://discord.com/api/v10/channels/${channelId}/messages?limit=100`;
+  const url = `https://discord.com/api/v10/channels/${channelId}/messages?limit=100`;
 
-    const response = await fetch(url, {
-        headers: {
-            Authorization: 'Bot ' + process.env.DISCORD_TOKEN,
-        },
-    });
+  const response = await fetch(url, {
+    headers: {
+      Authorization: 'Bot ' + process.env.DISCORD_TOKEN,
+    },
+  });
 
-    const data = await response.json();
-    if (!Array.isArray(data)) {
-        throw new Error('Invalid response from Discord API');
-    }
+  const data = await response.json();
+  if (!Array.isArray(data)) {
+    throw new Error('Invalid response from Discord API');
+  }
 
-    return data.map(message => ({
-        id: message.id,
-        // extract user
-        user: {
-            id: message.author.id,
-            username: message.author.username,
-            discriminator: message.author.discriminator,
-            avatar: message.author.avatar,
-        },
-        content: message.content,
+  return data
+    .filter((message) => message.author.discriminator === '0')
+    .map((message) => ({
+      id: message.id,
+      // Extract user details
+      user: {
+        id: message.author.id,
+        username: message.author.username,
+        discriminator: message.author.discriminator,
+        avatar: message.author.avatar,
+      },
+      content: message.content,
     }));
 }
 
