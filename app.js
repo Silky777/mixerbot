@@ -177,14 +177,24 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
     if (name === 'querysongs') {
       try {
         const options = data.options || [];
-        const userQuery = options.find(o => o.name === 'user')?.value?.toLowerCase();
+        let userQuery = options.find(o => o.name === 'user')?.value?.toLowerCase();
         const artistQuery = options.find(o => o.name === 'artist')?.value?.toLowerCase();
         const titleQuery = options.find(o => o.name === 'title')?.value?.toLowerCase();
+
+        let userId = null;
+        const mentionMatch = userQuery?.match(/^<@!?(\d+)>$/);
+        if (mentionMatch) {
+          userId = mentionMatch[1];
+          userQuery = null; // Clear userQuery if we have a userId
+        }
 
         let query = 'SELECT * FROM songs WHERE 1=1';
         const params = [];
 
-        if (userQuery) {
+        if (userId) {
+          query += ' AND user_id = ?';
+          params.push(userId);
+        } else if (userQuery) {
           query += ' AND LOWER(user_name) LIKE ?';
           params.push(`%${userQuery}%`);
         }
