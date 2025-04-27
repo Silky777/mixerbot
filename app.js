@@ -9,7 +9,7 @@ import {
   verifyKeyMiddleware,
 } from 'discord-interactions';
 import { fetchMusic, extractYouTubeLinks, insertSong } from './mixer.js';
-import { saveChannelId, loadChannelId } from './utils.js';
+import { saveChannelId, loadChannelId, saveBotControllerRole, loadBotControllerRole } from './utils.js';
 import db from './db.js';
 
 // Create an express app
@@ -58,13 +58,18 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
     // # Set Music Channel Command
     if (name === 'setchannel') {
       const memberPermissions = req.body.member?.permissions;
+      const memberRoles = req.body.member?.roles || [];
+      const botControllerRoleId = loadBotControllerRole(); // Load the saved role ID
 
-      // 0x8 is ADMINISTRATOR
-      if ((parseInt(memberPermissions) & 0x8) !== 0x8) {
+      // Check if the user has the Administrator permission or the Bot Controller role
+      const isAdmin = (parseInt(memberPermissions) & 0x8) === 0x8;
+      const isBotController = botControllerRoleId && memberRoles.includes(botControllerRoleId);
+
+      if (!isAdmin && !isBotController) {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
-            content: 'You must be an admin to use this command.',
+            content: '❌ You must be an admin or have the "Bot Controller" role to use this command.',
             flags: InteractionResponseFlags.EPHEMERAL,
           },
         });
@@ -82,6 +87,37 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
           content: `Music channel set to <#${channelId}>`,
+        },
+      });
+    }
+
+    // # Set Bot Controller Role Command
+    if (name === 'setadminrole') {
+      const memberPermissions = req.body.member?.permissions;
+
+      // 0x8 is ADMINISTRATOR
+      if ((parseInt(memberPermissions) & 0x8) !== 0x8) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You must be an admin to use this command.',
+            flags: InteractionResponseFlags.EPHEMERAL,
+          },
+        });
+      }
+
+      // get Channel ID from options, save it to the target channel
+      const roleId = data.options.find(opt => opt.name === 'role').value;
+      // Save the channel ID to a file
+      saveBotControllerRole(roleId);
+
+      // Send a message into the channel where command was triggered from
+      console.log(`Setting bot controller role to ${roleId}`);
+
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: `Bot controller role set to <@&${roleId}>`,
         },
       });
     }
@@ -140,6 +176,89 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
       }
     }
 
+    // Scan channel command
+    if (name === 'scanmusic') {
+      const memberPermissions = req.body.member?.permissions;
+      const memberRoles = req.body.member?.roles || [];
+      const botControllerRoleId = loadBotControllerRole(); // Load the saved role ID
+
+      // Check if the user has the Administrator permission or the Bot Controller role
+      const isAdmin = (parseInt(memberPermissions) & 0x8) === 0x8;
+      const isBotController = botControllerRoleId && memberRoles.includes(botControllerRoleId);
+
+      if (!isAdmin && !isBotController) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: '❌ You must be an admin or have the "Bot Controller" role to use this command.',
+            flags: InteractionResponseFlags.EPHEMERAL,
+          },
+        });
+      }
+
+      try {
+        const messages = await fetchMusic(targetChannelID);
+        const urls = extractYouTubeLinks(messages);
+        const existing = db.prepare('SELECT url FROM songs').all().map(s => s.url);
+
+        let newCount = 0;
+        for (const { url, user, id, timestamp } of urls) {
+          if (!existing.includes(url)) {
+            await insertSong({ url, user: { id: id, username: user }, timestamp });
+            newCount++;
+          }
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `✅ Scanned ${urls.length} links. ${newCount} new songs added.`,
+          },
+        });
+      } catch (err) {
+        console.error('Error scanning music:', err);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: '❌ An error occurred while scanning the channel.',
+          },
+        });
+      }
+    }
+
+
+    // Scan channel command
+    if (name === 'scanmusic') {
+      try {
+        const messages = await fetchMusic(targetChannelID);
+        const urls = extractYouTubeLinks(messages);
+        const existing = db.prepare('SELECT url FROM songs').all().map(s => s.url);
+
+        let newCount = 0;
+        for (const { url, user, id, timestamp } of urls) {
+          if (!existing.includes(url)) {
+            await insertSong({ url, user: { id: id, username: user }, timestamp });
+            newCount++;
+          }
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `✅ Scanned ${urls.length} links. ${newCount} new songs added.`,
+          },
+        });
+      } catch (err) {
+        console.error('Error scanning music:', err);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: '❌ An error occurred while scanning the channel.',
+          },
+        });
+      }
+    }
+    //
     // Scan channel command
     if (name === 'scanmusic') {
       try {

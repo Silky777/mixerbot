@@ -55,13 +55,34 @@ export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+export function saveBotControllerRole(roleId) {
+  const config = fs.existsSync('./server-config.json')
+    ? JSON.parse(fs.readFileSync('./server-config.json', 'utf8'))
+    : {};
+  config.botControllerRole = roleId;
+  fs.writeFileSync('./server-config.json', JSON.stringify(config, null, 2));
+}
+
+export function loadBotControllerRole() {
+  if (fs.existsSync('./server-config.json')) {
+    const data = fs.readFileSync('./server-config.json', 'utf8');
+    const config = JSON.parse(data);
+    return config.botControllerRole;
+  }
+  return null;
+}
+
 export function saveChannelId(channelId) {
-  fs.writeFileSync('./channel-config.json', JSON.stringify({ targetChannelID: channelId}));
+  const config = fs.existsSync('./server-config.json')
+    ? JSON.parse(fs.readFileSync('./server-config.json', 'utf8'))
+    : {};
+  config.targetChannelID = channelId;
+  fs.writeFileSync('./server-config.json', JSON.stringify(config, null, 2));
 }
 
 export function loadChannelId() {
-  if (fs.existsSync('./channel-config.json')) {
-    const data = fs.readFileSync('./channel-config.json', 'utf8');
+  if (fs.existsSync('./server-config.json')) {
+    const data = fs.readFileSync('./server-config.json', 'utf8');
     const config = JSON.parse(data);
     return config.targetChannelID;
   }
