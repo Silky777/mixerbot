@@ -39,9 +39,7 @@ const SET_CHANNEL_COMMAND = {
     },
   ],
   integration_types: [0, 1],
-  contexts: [0, 2],
-  // only admins can run this command
-  default_member_permissions: 8, // 8 is the permission for administrator
+  contexts: [0, 2]
 }
 
 const SET_BOT_CONTROLLER_ROLE_COMMAND = {
